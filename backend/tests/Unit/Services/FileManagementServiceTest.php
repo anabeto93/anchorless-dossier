@@ -148,17 +148,42 @@ class FileManagementServiceTest extends TestCase
     #[Test]
     #[Group('services')]
     #[Group('file_management_service')]
+    #[Group('retrieve_metadata')]
     public function it_retrieves_file_metadata_successfully(): void
     {
-        // Test will be implemented
+        $service = new FileManagementService();
+        $dto = new StoreFileMetadataDTO(
+            fileId: 'doc_123',
+            name: 'document.pdf',
+            size: 1024,
+            mimeType: 'application/pdf',
+            userId: $this->user->id
+        );
+        $service->storeMetadata($dto);
+
+        $response = $service->getMetadata('doc_123');
+
+        $this->assertTrue($response->success);
+        $this->assertEquals(200, $response->errorCode);
+        $this->assertEquals('File metadata retrieved successfully', $response->message);
+        $this->assertArrayHasKey('file_id', $response->data);
+        $this->assertEquals('doc_123', $response->data['file_id']);
     }
 
     #[Test]
     #[Group('services')]
     #[Group('file_management_service')]
+    #[Group('retrieve_metadata')]
     public function it_returns_error_when_retrieving_nonexistent_file(): void
     {
-        // Test will be implemented
+        $service = new FileManagementService();
+        $response = $service->getMetadata('non_existent_id');
+
+        $this->assertFalse($response->success);
+        $this->assertEquals(404, $response->errorCode);
+        $this->assertEquals('File metadata not found', $response->message);
+        $this->assertArrayHasKey('error', $response->errors);
+        $this->assertEquals('The requested file metadata could not be found', $response->errors['error']);
     }
 
     #[Test]

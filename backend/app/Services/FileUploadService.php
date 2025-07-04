@@ -13,6 +13,13 @@ class FileUploadService
 {
     const MAX_FILE_SIZE = 4096; // 4MB in kilobytes
     
+    /**
+     * Uploads a file and queues it for processing.
+     *
+     * @param UploadedFile $file The uploaded file.
+     * @param string $destination The destination directory for the file.
+     * @return ApiResponse The response object.
+     */
     public function upload(UploadedFile $file, string $destination): ApiResponse
     {
         // Validate file size

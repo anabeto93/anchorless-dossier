@@ -64,4 +64,29 @@ class FileManagementService
             ['file_id' => $fileMetadata->file_id]
         );
     }
+
+    /**
+     * Retrieve file metadata by file ID.
+     *
+     * @param string $fileId
+     * @return ApiResponse
+     */
+    public function getMetadata(string $fileId): ApiResponse
+    {
+        $fileMetadata = FileMetadata::where('file_id', $fileId)->first();
+
+        if (!$fileMetadata) {
+            return ApiResponse::error(
+                'File metadata not found',
+                404,
+                ['error' => 'The requested file metadata could not be found']
+            );
+        }
+
+        return ApiResponse::success(
+            'File metadata retrieved successfully',
+            200,
+            $fileMetadata->toArray()
+        );
+    }
 }

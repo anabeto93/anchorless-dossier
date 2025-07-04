@@ -1,0 +1,75 @@
+# Root level
+node_modules/
+vendor/
+.env
+.env.*
+*.env
+.DS_Store
+*.log
+
+# Logs and OS files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# --- Frontend (React) ---
+/frontend/node_modules/
+/frontend/dist/
+/frontend/build/
+/frontend/.env
+/frontend/.env.* 
+/frontend/.next/
+/frontend/.turbo/
+frontend/coverage/
+
+# React cache
+/frontend/.parcel-cache/
+/frontend/.eslintcache
+/frontend/.cache/
+
+# --- Backend (Laravel) ---
+/backend/vendor/
+/backend/storage/*
+!/backend/storage/app/
+/backend/bootstrap/cache/
+/backend/.env
+/backend/.env.*
+/backend/.phpunit.result.cache
+/backend/public/storage
+
+# Laravel IDE helpers (if used)
+/backend/_ide_helper.php
+/backend/_ide_helper_models.php
+/backend/.phpstorm.meta.php
+
+# Composer dependencies cache (optional)
+/backend/composer.lock
+
+# Laravel sail
+/backend/docker-compose.override.yml
+
+# Node modules if Laravel Mix or Vite is used in backend
+/backend/node_modules/
+/backend/public/hot
+/backend/public/build
+/backend/.vite
+/backend/.vitepress
+/backend/.cache
+
+# Test coverage (if applicable)
+/backend/coverage/
+
+# Misc
+*.bak
+*.tmp
+*.swp
+*.swo
+

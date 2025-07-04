@@ -49,13 +49,18 @@ class FileUploadServiceTest extends TestCase
         $file = UploadedFile::fake()->create('document.pdf');
         
         $response = $service->upload($file, 'uploads');
+
+        $this->assertTrue($response->success);
+        $this->assertEquals(202, $response->errorCode);
         
         // Simulate job processing
         Bus::dispatched(ProcessFileUpload::class, function ($job) {
             $job->handle();
         });
         
-        Storage::disk('local')->assertExists('uploads/document.pdf');
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk('local');
+        $disk->assertExists('uploads/document.pdf');
     }
 
     #[Test]

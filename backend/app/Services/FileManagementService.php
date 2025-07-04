@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Bus;
 use App\Jobs\DeleteFileJob;
 use Illuminate\Contracts\Pagination\Paginator;
+use Illuminate\Support\Facades\Storage;
 
 class FileManagementService
 {
@@ -141,6 +142,7 @@ class FileManagementService
                     'name' => $file->name,
                     'size' => $file->size,
                     'created_at' => $file->created_at,
+                    'path' => config('file.storage.url') . '/' . $file->name,
                 ];
             }
 

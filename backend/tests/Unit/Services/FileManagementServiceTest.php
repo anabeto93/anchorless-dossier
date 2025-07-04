@@ -10,14 +10,11 @@ use App\Services\FileManagementService;
 use App\Models\FileMetadata;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Bus;
 use App\Jobs\DeleteFileJob;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Builder;
 
 class FileManagementServiceTest extends TestCase
 {
@@ -28,6 +25,7 @@ class FileManagementServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        config(['file.storage.url' => '/files']);
         $this->user = User::factory()->create();
         Bus::fake();
     }

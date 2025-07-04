@@ -35,7 +35,7 @@ class ListFilesControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'success',
-                'errorCode',
+                'error_code',
                 'message',
                 'data' => [
                     'grouped_files' => [
@@ -61,7 +61,7 @@ class ListFilesControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'success',
-                'errorCode',
+                'error_code',
                 'message',
                 'data' => [
                     'grouped_files' => [],

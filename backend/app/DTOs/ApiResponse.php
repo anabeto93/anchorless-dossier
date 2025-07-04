@@ -33,7 +33,7 @@ class ApiResponse
     {
         $result = [
             'success' => $this->success,
-            'errorCode' => $this->errorCode,
+            'error_code' => $this->errorCode,
             'message' => $this->message,
         ];
 

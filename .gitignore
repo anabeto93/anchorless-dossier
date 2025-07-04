@@ -3,7 +3,10 @@ node_modules/
 vendor/
 .env
 .env.*
-*.env
+!/backend/.env.example
+!/backend/.env.testing
+!/frontend/.env.example
+!/frontend.env.testing
 .DS_Store
 *.log
 
@@ -25,7 +28,9 @@ pnpm-debug.log*
 /frontend/dist/
 /frontend/build/
 /frontend/.env
-/frontend/.env.* 
+/frontend/.env.*
+!/frontend/.env.example
+!/frontend/.env.testing 
 /frontend/.next/
 /frontend/.turbo/
 frontend/coverage/
@@ -42,6 +47,8 @@ frontend/coverage/
 /backend/bootstrap/cache/
 /backend/.env
 /backend/.env.*
+!/backend/.env.example
+!/backend/.env.testing
 /backend/.phpunit.result.cache
 /backend/public/storage
 

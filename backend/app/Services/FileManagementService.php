@@ -9,10 +9,7 @@ use App\DTOs\StoreFileMetadataDTO;
 use App\Models\FileMetadata;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Bus;
 use App\Jobs\DeleteFileJob;
-use Illuminate\Contracts\Pagination\Paginator;
-use Illuminate\Support\Facades\Storage;
 
 class FileManagementService
 {
@@ -109,7 +106,7 @@ class FileManagementService
         }
 
         // Always dispatch the file deletion job
-        Bus::dispatch(new DeleteFileJob($fileId));
+        dispatch(new DeleteFileJob($fileId))->afterResponse();
 
         return ApiResponse::success(
             'File metadata deleted successfully',

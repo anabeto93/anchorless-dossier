@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\File\ListFilesController;
+use App\Http\Controllers\Api\ListFilesController;
+use App\Http\Controllers\Api\UploadFileController;
+use App\Http\Controllers\Api\DeleteFileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,4 +21,6 @@ use App\Http\Controllers\Api\File\ListFilesController;
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/files', ListFilesController::class);
+    Route::post('/files', UploadFileController::class);
+    Route::delete('/files/{file}', DeleteFileController::class);
 });

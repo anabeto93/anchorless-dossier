@@ -30,7 +30,7 @@ class DeleteFileControllerTest extends TestCase
     public function test_user_can_delete_owned_file(): void
     {
         $response = $this->actingAs($this->user)
-            ->deleteJson("/api/files/{$this->file->id}");
+            ->deleteJson("/api/files/{$this->file->file_id}");
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -39,7 +39,7 @@ class DeleteFileControllerTest extends TestCase
                 'message',
             ]);
 
-        $this->assertDatabaseMissing('file_metadata', ['id' => $this->file->id]);
+        $this->assertDatabaseMissing('file_metadata', ['id' => $this->file->file_id]);
     }
 
     #[Test]
@@ -59,7 +59,7 @@ class DeleteFileControllerTest extends TestCase
     {
         $otherUser = User::factory()->create();
         $response = $this->actingAs($otherUser)
-            ->deleteJson("/api/files/{$this->file->id}");
+            ->deleteJson("/api/files/{$this->file->file_id}");
 
         $response->assertStatus(200);
     }
@@ -68,7 +68,7 @@ class DeleteFileControllerTest extends TestCase
     #[Group('delete_file')]
     public function test_unauthenticated_user_cannot_delete_file(): void
     {
-        $response = $this->deleteJson("/api/files/{$this->file->id}");
+        $response = $this->deleteJson("/api/files/{$this->file->file_id}");
         $response->assertStatus(401);
     }
 }

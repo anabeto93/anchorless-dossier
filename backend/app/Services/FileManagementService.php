@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Bus;
 use App\Jobs\DeleteFileJob;
+use Illuminate\Contracts\Pagination\Paginator;
 
 class FileManagementService
 {
@@ -112,5 +113,53 @@ class FileManagementService
         return ApiResponse::success(
             'File metadata deleted successfully',
         );
+    }
+
+    /**
+     * List files grouped by type.
+     *
+     * @param int $userId
+     * @return ApiResponse
+     */
+    public function listFilesGroupedByType(int $userId): ApiResponse
+    {
+        try {
+            // Check if user exists
+            if (!User::where('id', $userId)->exists()) {
+                return ApiResponse::declined('User not found', 404);
+            }
+
+            // Paginate the files for the user
+            $files = FileMetadata::where('user_id', $userId)
+                ->paginate(15); // Default per page
+
+            // Group the files by MIME type
+            $groupedFiles = [];
+            foreach ($files as $file) {
+                $groupedFiles[$file->mime_type][] = [
+                    'id' => $file->file_id,
+                    'name' => $file->name,
+                    'size' => $file->size,
+                    'created_at' => $file->created_at,
+                ];
+            }
+
+            // Build response data
+            $data = [
+                'grouped_files' => $groupedFiles,
+                'pagination' => [
+                    'current_page' => $files->currentPage(),
+                    'per_page' => $files->perPage(),
+                    'total' => $files->total(),
+                    'last_page' => $files->lastPage(),
+                ],
+            ];
+        } catch (\Throwable $e) {
+            // Log the exception if needed
+            $error = config('app.debug') ? ['error' => $e->getMessage()] : [];
+            return ApiResponse::error('Failed to list files grouped by type', 500, $error);
+        }
+
+        return ApiResponse::success('Files listed successfully', 200, $data);
     }
 }

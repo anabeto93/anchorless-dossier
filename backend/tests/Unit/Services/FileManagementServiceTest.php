@@ -10,11 +10,14 @@ use App\Services\FileManagementService;
 use App\Models\FileMetadata;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Bus;
 use App\Jobs\DeleteFileJob;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
 
 class FileManagementServiceTest extends TestCase
 {
@@ -230,5 +233,91 @@ class FileManagementServiceTest extends TestCase
         Bus::assertDispatched(DeleteFileJob::class, function ($job) {
             return $job->fileId === 'non_existent_id';
         });
+    }
+
+    #[Test]
+    #[Group('services')]
+    #[Group('file_management_service')]
+    #[Group('list_files')]
+    public function it_lists_files_grouped_by_type(): void
+    {
+        // Create files of different types
+        FileMetadata::factory()->create([
+            'user_id' => $this->user->id,
+            'mime_type' => 'application/pdf'
+        ]);
+        FileMetadata::factory()->create([
+            'user_id' => $this->user->id,
+            'mime_type' => 'image/png'
+        ]);
+        FileMetadata::factory()->create([
+            'user_id' => $this->user->id,
+            'mime_type' => 'image/jpg'
+        ]);
+        
+        $service = new FileManagementService();
+        $response = $service->listFilesGroupedByType($this->user->id);
+        
+        $this->assertTrue($response->success);
+        $this->assertEquals(200, $response->errorCode);
+        $this->assertArrayHasKey('grouped_files', $response->data);
+        $this->assertArrayHasKey('pagination', $response->data);
+        $this->assertArrayHasKey('application/pdf', $response->data['grouped_files']);
+        $this->assertArrayHasKey('image/png', $response->data['grouped_files']);
+        $this->assertArrayHasKey('image/jpg', $response->data['grouped_files']);
+        $this->assertArrayHasKey('current_page', $response->data['pagination']);
+        $this->assertArrayHasKey('per_page', $response->data['pagination']);
+        $this->assertArrayHasKey('total', $response->data['pagination']);
+        $this->assertArrayHasKey('last_page', $response->data['pagination']);
+    }
+
+    #[Test]
+    #[Group('services')]
+    #[Group('file_management_service')]
+    #[Group('list_files')]
+    public function it_returns_empty_groups_when_no_files(): void
+    {
+        $service = new FileManagementService();
+        $response = $service->listFilesGroupedByType($this->user->id);
+        
+        $this->assertTrue($response->success);
+        $this->assertEquals(200, $response->errorCode);
+        $this->assertArrayHasKey('grouped_files', $response->data);
+        $this->assertArrayHasKey('pagination', $response->data);
+        $this->assertEmpty($response->data['grouped_files']);
+        $this->assertEquals(0, $response->data['pagination']['total']);
+    }
+
+    #[Test]
+    #[Group('services')]
+    #[Group('file_management_service')]
+    #[Group('list_files')]
+    public function it_fails_to_list_files_grouped_by_type_when_user_id_is_invalid(): void
+    {
+        $service = new FileManagementService();
+        $response = $service->listFilesGroupedByType(999);
+        
+        $this->assertFalse($response->success);
+        $this->assertEquals(404, $response->errorCode);
+        $this->assertEquals('User not found', $response->message);
+    }
+
+    #[Test]
+    #[Group('services')]
+    #[Group('file_management_service')]
+    #[Group('list_files')]
+    public function it_fails_to_list_files_grouped_by_type_when_database_query_fails(): void
+    {
+        $defaultConnection = config('database.default');
+        config(['database.default' => 'non_existent_conn']);
+
+        $service = new FileManagementService();
+        $response = $service->listFilesGroupedByType($this->user->id);
+
+        $this->assertFalse($response->success);
+        $this->assertEquals(500, $response->errorCode);
+        $this->assertEquals('Failed to list files grouped by type', $response->message);
+
+        config(['database.default' => $defaultConnection]);
     }
 }

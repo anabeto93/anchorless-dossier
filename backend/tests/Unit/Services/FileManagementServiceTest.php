@@ -13,6 +13,8 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Bus;
+use App\Jobs\DeleteFileJob;
 
 class FileManagementServiceTest extends TestCase
 {
@@ -24,6 +26,7 @@ class FileManagementServiceTest extends TestCase
     {
         parent::setUp();
         $this->user = User::factory()->create();
+        Bus::fake();
     }
 
     protected function tearDown(): void
@@ -189,24 +192,43 @@ class FileManagementServiceTest extends TestCase
     #[Test]
     #[Group('services')]
     #[Group('file_management_service')]
+    #[Group('delete_metadata')]
     public function it_returns_success_on_file_deletion(): void
     {
-        // Test will be implemented
+        $service = new FileManagementService();
+        $dto = new StoreFileMetadataDTO(
+            fileId: 'doc_123',
+            name: 'document.pdf',
+            size: 1024,
+            mimeType: 'application/pdf',
+            userId: $this->user->id
+        );
+        $service->storeMetadata($dto);
+
+        $response = $service->deleteMetadata('doc_123');
+
+        $this->assertTrue($response->success);
+        $this->assertEquals(200, $response->errorCode);
+        $this->assertEquals('File metadata deleted successfully', $response->message);
+        Bus::assertDispatched(DeleteFileJob::class, function ($job) {
+            return $job->fileId === 'doc_123';
+        });
     }
 
     #[Test]
     #[Group('services')]
     #[Group('file_management_service')]
-    public function it_returns_success_even_when_deleting_nonexistent_file(): void
+    #[Group('delete_metadata')]
+    public function it_returns_success_even_when_file_metadata_does_not_exist(): void
     {
-        // Test will be implemented
-    }
+        $service = new FileManagementService();
+        $response = $service->deleteMetadata('non_existent_id');
 
-    #[Test]
-    #[Group('services')]
-    #[Group('file_management_service')]
-    public function it_creates_new_file_version_successfully(): void
-    {
-        // Test will be implemented
+        $this->assertTrue($response->success);
+        $this->assertEquals(200, $response->errorCode); // if 204 is used, no payload would be returned to the frontend
+        $this->assertEquals('File metadata deleted successfully', $response->message);
+        Bus::assertDispatched(DeleteFileJob::class, function ($job) {
+            return $job->fileId === 'non_existent_id';
+        });
     }
 }

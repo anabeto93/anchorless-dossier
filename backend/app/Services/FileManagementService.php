@@ -9,6 +9,8 @@ use App\DTOs\StoreFileMetadataDTO;
 use App\Models\FileMetadata;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Bus;
+use App\Jobs\DeleteFileJob;
 
 class FileManagementService
 {
@@ -87,6 +89,28 @@ class FileManagementService
             'File metadata retrieved successfully',
             200,
             $fileMetadata->toArray()
+        );
+    }
+
+    /**
+     * Delete file metadata and dispatch job to delete physical file.
+     *
+     * @param string $fileId
+     * @return ApiResponse
+     */
+    public function deleteMetadata(string $fileId): ApiResponse
+    {
+        $fileMetadata = FileMetadata::where('file_id', $fileId)->first();
+
+        if ($fileMetadata) {
+            $fileMetadata->delete();
+        }
+
+        // Always dispatch the file deletion job
+        Bus::dispatch(new DeleteFileJob($fileId));
+
+        return ApiResponse::success(
+            'File metadata deleted successfully',
         );
     }
 }

@@ -31,3 +31,32 @@ if (!function_exists('generateUniqueFileId')) {
         return $fileId;
     }
 }
+
+if (!function_exists('getDefaultFilePath')) {
+    /**
+     * Get the default file path for a given file ID
+     * 
+     * @param string $fileId The file ID
+     * @return string The default file path
+     */
+    function getDefaultFilePath(string $fileId): string
+    {
+        return str_replace('//', '/', config('file.storage.path') . '/' . $fileId);
+    }
+}
+
+if (!function_exists('constructFileUrl')) {
+    /**
+     * Construct the file URL from a given file metadata
+     * 
+     * @param \App\Models\FileMetadata $file The file metadata
+     * @return string The file URL
+     */
+    function constructFileUrl(\App\Models\FileMetadata $file): string
+    {
+        $disk = $file->disk ?? config('file.storage.disk');
+        $path = $file->path ?? config('file.storage.path');
+        $url = \Illuminate\Support\Facades\Storage::disk($disk)->url($path);
+        return config('app.url') . str_replace('//', '/', '/' . $url);
+    }
+}

@@ -35,6 +35,10 @@ class GetFileControllerTest extends TestCase
     public function user_can_fetch_owned_file(): void
     {
         config(['file.storage.url' => 'files']);
+        /**
+         * @see \App\Jobs\ProcessFileUpload::handle() line 38 for how the path is generated
+         * @var FileMetadata $file
+         */
         $file = FileMetadata::factory()->for($this->user)->create();
 
         $response = $this->getJson('/api/files/' . $file->file_id, headers: $this->headers);
@@ -60,7 +64,7 @@ class GetFileControllerTest extends TestCase
         $response->assertJsonPath('data.id', $file->id);
         $response->assertJsonPath('data.file_id', $file->file_id);
         $response->assertJsonPath('data.name', $file->name);
-        $response->assertJsonPath('data.path', config('app.url') . Storage::disk('local')->url($file->file_id));
+        $response->assertJsonPath('data.path', constructFileUrl($file));
     }
 
     #[Test]

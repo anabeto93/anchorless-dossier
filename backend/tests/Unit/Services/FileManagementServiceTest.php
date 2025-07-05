@@ -170,26 +170,35 @@ class FileManagementServiceTest extends TestCase
     public function it_retrieves_file_metadata_successfully(): void
     {
         $service = new FileManagementService();
+        $fileId = 'doc_123';
+
+        /**
+         * @see \App\Jobs\ProcessFileUpload::handle() line 38 for how the path is generated
+         * @var StoreFileMetadataDTO $dto
+         */
         $dto = new StoreFileMetadataDTO(
-            fileId: 'doc_123',
+            fileId: $fileId,
             name: 'document.pdf',
             size: 1024,
             mimeType: 'application/pdf',
             disk: config('file.storage.disk'),
-            path: '/files',
+            path: '/files' . '/' . $fileId,
             userId: $this->user->id,
             user: null
         );
         $service->storeMetadata($dto);
 
-        $response = $service->getMetadata('doc_123', $this->user->id);
+        $response = $service->getMetadata($fileId, $this->user->id);
 
         $this->assertTrue($response->success);
         $this->assertEquals(200, $response->errorCode);
         $this->assertEquals('File metadata retrieved successfully', $response->message);
         $this->assertArrayHasKey('file_id', $response->data);
         $this->assertEquals('doc_123', $response->data['file_id']);
-        $this->assertEquals(config('app.url') . Storage::disk('local')->url('doc_123'), $response->data['path']);
+
+        $cleanUrl = config('app.url') . str_replace('//', '/', Storage::disk('local')->url($dto->path));
+
+        $this->assertEquals($cleanUrl, $response->data['path']);
     }
 
     #[Test]

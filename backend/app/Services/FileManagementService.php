@@ -10,7 +10,6 @@ use App\Models\FileMetadata;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use App\Jobs\DeleteFileJob;
-use Illuminate\Support\Facades\Storage;
 
 class FileManagementService
 {
@@ -89,10 +88,8 @@ class FileManagementService
         }
 
         // Add the file path for frontend access
-        $url = Storage::disk('local')->url($fileMetadata->file_id); // only ids are unique
-        // since we're using local, we need to prepend the app url
-        $url = config('app.url') . str_replace('//', '/', '/' . $url);
-  
+        $url = constructFileUrl($fileMetadata);
+
         return ApiResponse::success(
             'File metadata retrieved successfully',
             200,
@@ -156,7 +153,7 @@ class FileManagementService
                     'name' => $file->name,
                     'size' => $file->size,
                     'created_at' => $file->created_at,
-                    'path' => config('file.storage.url') . '/' . $file->name,
+                    'path' => constructFileUrl($file),
                 ];
             }
 

@@ -19,14 +19,20 @@ class FileMetadataFactory extends Factory
      */
     public function definition(): array
     {
+        /**
+         * @see \App\Jobs\ProcessFileUpload::handle() line 38 for how the path is generated
+         * @var string $id
+         */
+        $id = $this->faker->unique()->uuid;
+
         return [
-            'file_id' => $this->faker->unique()->uuid,
+            'file_id' => $id,
             'name' => $this->faker->word . '.' . $this->faker->fileExtension,
             'size' => $this->faker->numberBetween(100, 10000),
             'mime_type' => $this->faker->mimeType,
             'user_id' => \App\Models\User::factory(),
             'disk' => config('file.storage.disk'),
-            'path' => config('file.storage.path'),
+            'path' => config('file.storage.path') . '/' . $id,
             'created_at' => now(),
             'updated_at' => now(),
         ];

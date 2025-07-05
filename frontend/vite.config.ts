@@ -21,4 +21,8 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  server: process.env.NODE_ENV === "development" ? {
+    host: "0.0.0.0",
+    port: 5170
+  } : undefined,
 });

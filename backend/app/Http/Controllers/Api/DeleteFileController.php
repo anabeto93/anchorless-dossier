@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\FileManagementService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DeleteFileController extends Controller
@@ -14,7 +15,7 @@ class DeleteFileController extends Controller
         protected FileManagementService $fileManagementService
     ) {}
     
-    public function __invoke(Request $request, string|int $id)
+    public function __invoke(Request $request, string|int $id): JsonResponse
     {
         $apiResponse = $this->fileManagementService->deleteMetadata("{$id}", (string) $request->user()->id);
         return response()->json($apiResponse->toArray(), $apiResponse->errorCode);

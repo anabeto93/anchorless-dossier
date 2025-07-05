@@ -48,7 +48,10 @@ class FileManagementServiceTest extends TestCase
             name: 'document.pdf',
             size: 1024,
             mimeType: 'application/pdf',
-            userId: $this->user->id
+            disk: config('file.storage.disk'),
+            path: '/files',
+            userId: $this->user->id,
+            user: null
         );
 
         $response = $service->storeMetadata($dto);
@@ -81,7 +84,10 @@ class FileManagementServiceTest extends TestCase
             name: 'document.pdf',
             size: 1024,
             mimeType: 'application/pdf',
-            userId: $this->user->id
+            disk: config('file.storage.disk'),
+            path: '/files',
+            userId: $this->user->id,
+            user: null,
         );
 
         $response = $service->storeMetadata($dto);
@@ -105,7 +111,8 @@ class FileManagementServiceTest extends TestCase
             name: 'document.pdf',
             size: 1024,
             mimeType: 'application/pdf',
-            userId: 999
+            userId: 999,
+            user: null
         );
 
         $response = $service->storeMetadata($dto);
@@ -129,7 +136,10 @@ class FileManagementServiceTest extends TestCase
             name: 'document.pdf',
             size: 1024,
             mimeType: 'application/pdf',
-            userId: $this->user->id
+            disk: config('file.storage.disk'),
+            path: '/files',
+            userId: $this->user->id,
+            user: null
         );
         $service->storeMetadata($dto1);
 
@@ -139,7 +149,10 @@ class FileManagementServiceTest extends TestCase
             name: 'document2.pdf',
             size: 2048,
             mimeType: 'application/pdf',
-            userId: $this->user->id
+            disk: config('file.storage.disk'),
+            path: '/files',
+            userId: $this->user->id,
+            user: null
         );
         $response = $service->storeMetadata($dto2);
 
@@ -162,7 +175,10 @@ class FileManagementServiceTest extends TestCase
             name: 'document.pdf',
             size: 1024,
             mimeType: 'application/pdf',
-            userId: $this->user->id
+            disk: config('file.storage.disk'),
+            path: '/files',
+            userId: $this->user->id,
+            user: null
         );
         $service->storeMetadata($dto);
 
@@ -205,7 +221,8 @@ class FileManagementServiceTest extends TestCase
             name: 'document.pdf',
             size: 1024,
             mimeType: 'application/pdf',
-            userId: $otherUser->id
+            userId: $otherUser->id,
+            user: $otherUser
         );
         $service->storeMetadata($dto);
         $response = $service->getMetadata('doc_123', $this->user->id);
@@ -229,7 +246,10 @@ class FileManagementServiceTest extends TestCase
             name: 'document.pdf',
             size: 1024,
             mimeType: 'application/pdf',
-            userId: $this->user->id
+            disk: config('file.storage.disk'),
+            path: '/files',
+            userId: $this->user->id,
+            user: null
         );
         $service->storeMetadata($dto);
 

@@ -6,16 +6,29 @@ namespace Tests\Unit\Services;
 
 use App\DTOs\ApiResponse;
 use App\Jobs\ProcessFileUpload;
+use App\Models\FileMetadata;
+use App\Models\User;
 use App\Services\FileUploadService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class FileUploadServiceTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+    }
+
     #[Test]
     #[Group('services')]
     #[Group('upload_service')]
@@ -23,16 +36,17 @@ class FileUploadServiceTest extends TestCase
     {
         Bus::fake();
         Storage::fake('local');
-        
+
         $service = new FileUploadService();
         $file = UploadedFile::fake()->create('document.pdf');
         
-        $response = $service->upload($file, 'uploads');
+        $response = $service->upload($this->user, $file, 'uploads');
         
         $this->assertTrue($response->success);
         $this->assertEquals(202, $response->errorCode);
         $this->assertEquals('File upload queued for processing', $response->message);
-        $this->assertArrayHasKey('job_id', $response->data);
+        $this->assertArrayHasKey('file_id', $response->data); // the job_id is not important to the frontend
+        $this->assertArrayHasKey('url', $response->data); // to get the file, we need to use the file_id
         
         Bus::assertDispatched(ProcessFileUpload::class);
     }
@@ -42,25 +56,22 @@ class FileUploadServiceTest extends TestCase
     #[Group('upload_service')]
     public function it_verifies_file_storage_after_processing(): void
     {
-        Bus::fake();
         Storage::fake('local');
         
         $service = new FileUploadService();
         $file = UploadedFile::fake()->create('document.pdf');
         
-        $response = $service->upload($file, 'uploads');
+        $response = $service->upload($this->user, $file, 'uploads');
 
         $this->assertTrue($response->success);
         $this->assertEquals(202, $response->errorCode);
         
-        // Simulate job processing
-        Bus::dispatched(ProcessFileUpload::class, function ($job) {
-            $job->handle();
-        });
-        
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
         $disk = Storage::disk('local');
-        $disk->assertExists('uploads/document.pdf');
+        $file = FileMetadata::where('name', 'document.pdf')->first();
+        $this->assertNotNull($file);
+        $this->assertEquals($file->user_id, $this->user->id);
+        $disk->assertExists($file->path);
     }
 
     #[Test]
@@ -72,7 +83,7 @@ class FileUploadServiceTest extends TestCase
         $service = new FileUploadService();
         $file = UploadedFile::fake()->create('huge-file.iso', 10000); // 10MB
         
-        $response = $service->upload($file, 'uploads');
+        $response = $service->upload($this->user, $file, 'uploads');
         
         $this->assertFalse($response->success);
         $this->assertEquals(413, $response->errorCode);
@@ -89,7 +100,7 @@ class FileUploadServiceTest extends TestCase
         $service = new FileUploadService();
         $file = UploadedFile::fake()->create('document.pdf');
         
-        $response = $service->upload($file, 'uploads');
+        $response = $service->upload($this->user, $file, 'uploads');
         
         $this->assertFalse($response->success);
         $this->assertEquals(500, $response->errorCode);

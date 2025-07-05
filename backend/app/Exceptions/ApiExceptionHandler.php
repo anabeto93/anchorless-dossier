@@ -22,7 +22,7 @@ class ApiExceptionHandler
 {
     public static array $handlers = [
         AuthenticationException::class => 'handleAuthenticationException',
-        AccessDeniedHttpException::class => 'handleAuthenticationException',
+        AccessDeniedHttpException::class => 'handleAuthorizationException',
         AuthorizationException::class => 'handleAuthorizationException',
         ValidationException::class => 'handleValidationException',
         ModelNotFoundException::class => 'handleNotFoundException',
@@ -88,10 +88,7 @@ class ApiExceptionHandler
         $errors = [];
         foreach ($e->errors() as $field => $messages) {
             foreach ($messages as $message) {
-                $errors[] = [
-                    'field' => $field,
-                    'message' => $message,
-                ];
+                $errors[$field][] = $message;
             }
         }
         

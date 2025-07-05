@@ -25,6 +25,8 @@ class FileMetadataFactory extends Factory
             'size' => $this->faker->numberBetween(100, 10000),
             'mime_type' => $this->faker->mimeType,
             'user_id' => \App\Models\User::factory(),
+            'disk' => config('file.storage.disk'),
+            'path' => config('file.storage.path'),
             'created_at' => now(),
             'updated_at' => now(),
         ];

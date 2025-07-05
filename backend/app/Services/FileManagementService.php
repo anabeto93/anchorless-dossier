@@ -22,7 +22,7 @@ class FileManagementService
      */
     public function storeMetadata(StoreFileMetadataDTO $dto): ApiResponse
     {
-        $user = User::find($dto->userId);
+        $user = $dto->user ?? User::find($dto->userId);
         if (!$user) {
             return ApiResponse::declined(
                 'User not found',
@@ -38,7 +38,9 @@ class FileManagementService
                 'name' => $dto->name,
                 'size' => $dto->size,
                 'mime_type' => $dto->mimeType,
-                'user_id' => $dto->userId
+                'user_id' => $dto->userId,
+                'disk' => $dto->disk,
+                'path' => $dto->path,
             ]);
 
             DB::commit();
@@ -113,7 +115,7 @@ class FileManagementService
         }
 
         // Always dispatch the file deletion job
-        dispatch(new DeleteFileJob($fileId))->afterResponse();
+        dispatch(new DeleteFileJob($fileId))->delay(now()->addSeconds(3));
 
         return ApiResponse::success(
             'File metadata deleted successfully',

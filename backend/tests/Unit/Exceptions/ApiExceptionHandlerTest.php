@@ -73,7 +73,7 @@ class ApiExceptionHandlerTest extends TestCase
         $this->assertEquals(422, $content['error_code']);
         $this->assertEquals('The provided data is invalid.', $content['message']);
         $this->assertEquals([
-            ['field' => 'email', 'message' => 'The email is invalid']
+            'email' => ['The email is invalid']
         ], $content['errors']);
     }
 

@@ -20,8 +20,8 @@ use App\Http\Controllers\Api\GetFileController;
 */
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/files', ListFilesController::class);
-    Route::post('/files', UploadFileController::class);
-    Route::delete('/files/{file}', DeleteFileController::class);
-    Route::get('/files/{file}', GetFileController::class);
+    Route::get('/files', ListFilesController::class)->name('files.list');
+    Route::post('/files', UploadFileController::class)->name('files.upload');
+    Route::delete('/files/{file}', DeleteFileController::class)->name('files.delete');
+    Route::get('/files/{file}', GetFileController::class)->name('files.get');
 });

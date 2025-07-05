@@ -13,6 +13,8 @@ return new class extends Migration {
             $table->string('name');
             $table->integer('size');
             $table->string('mime_type');
+            $table->string('disk');
+            $table->string('path');
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
         });

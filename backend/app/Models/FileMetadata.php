@@ -17,7 +17,9 @@ class FileMetadata extends Model
         'name',
         'size',
         'mime_type',
-        'user_id'
+        'user_id',
+        'disk',
+        'path',
     ];
 
     public function user(): BelongsTo

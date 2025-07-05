@@ -32,7 +32,17 @@ class ListFilesControllerTest extends TestCase
         // Create files for the user
         FileMetadata::factory()->count(3)->create([
             'user_id' => $this->user->id,
-            'mime_type' => 'image/jpeg',
+            'mime_type' => 'image/jpg',
+        ]);
+
+        FileMetadata::factory()->count(4)->create([
+            'user_id' => $this->user->id,
+            'mime_type' => 'application/pdf',
+        ]);
+
+        FileMetadata::factory()->count(1)->create([
+            'user_id' => $this->user->id,
+            'mime_type' => 'image/png',
         ]);
 
         $response = $this->getJson('/api/files', headers: $this->headers);
@@ -44,7 +54,13 @@ class ListFilesControllerTest extends TestCase
                 'message',
                 'data' => [
                     'grouped_files' => [
-                        'image/jpeg' => [
+                        'JPG' => [
+                            '*' => ['id', 'name', 'size', 'created_at', 'path'],
+                        ],
+                        'PDF' => [
+                            '*' => ['id', 'name', 'size', 'created_at', 'path'],
+                        ],
+                        'PNG' => [
                             '*' => ['id', 'name', 'size', 'created_at', 'path'],
                         ],
                     ],

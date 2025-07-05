@@ -140,10 +140,17 @@ class FileManagementService
             $files = FileMetadata::where('user_id', $userId)
                 ->paginate(15); // Default per page
 
+            // since there are only 3 file types allowed, we need to map to string values
+            $fileTypes = [
+                'image/jpg' => 'JPG',
+                'application/pdf' => 'PDF',
+                'image/png' => 'PNG',
+            ];
+
             // Group the files by MIME type
             $groupedFiles = [];
             foreach ($files as $file) {
-                $groupedFiles[$file->mime_type][] = [
+                $groupedFiles[$fileTypes[$file->mime_type]][] = [
                     'id' => $file->file_id,
                     'name' => $file->name,
                     'size' => $file->size,

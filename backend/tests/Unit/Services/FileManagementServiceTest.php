@@ -307,9 +307,9 @@ class FileManagementServiceTest extends TestCase
         $this->assertEquals(200, $response->errorCode);
         $this->assertArrayHasKey('grouped_files', $response->data);
         $this->assertArrayHasKey('pagination', $response->data);
-        $this->assertArrayHasKey('application/pdf', $response->data['grouped_files']);
-        $this->assertArrayHasKey('image/png', $response->data['grouped_files']);
-        $this->assertArrayHasKey('image/jpg', $response->data['grouped_files']);
+        $this->assertArrayHasKey('PDF', $response->data['grouped_files']);
+        $this->assertArrayHasKey('PNG', $response->data['grouped_files']);
+        $this->assertArrayHasKey('JPG', $response->data['grouped_files']);
         $this->assertArrayHasKey('current_page', $response->data['pagination']);
         $this->assertArrayHasKey('per_page', $response->data['pagination']);
         $this->assertArrayHasKey('total', $response->data['pagination']);

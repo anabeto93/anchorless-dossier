@@ -143,6 +143,7 @@ class FileManagementService
             // since there are only 3 file types allowed, we need to map to string values
             $fileTypes = [
                 'image/jpg' => 'JPG',
+                'image/jpeg' => 'JPG',
                 'application/pdf' => 'PDF',
                 'image/png' => 'PNG',
             ];

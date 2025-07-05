@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Models\User;
@@ -25,5 +27,7 @@ class DatabaseSeeder extends Seeder
 
         $this->command->info('User credentials: email=test@example.com, password=secret');
         $this->command->info('Test user created with token: ' . $token);
+
+        $this->call(FileMetadataSeeder::class);
     }
 }

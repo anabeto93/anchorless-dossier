@@ -44,7 +44,8 @@ frontend/coverage/
 /backend/vendor/
 /backend/storage/*
 !/backend/storage/app/
-/backend/bootstrap/cache/
+!/backend/bootstrap/cache/
+!/backend/storage/sample-docs
 /backend/.env
 /backend/.env.*
 !/backend/.env.example

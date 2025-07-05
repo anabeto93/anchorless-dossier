@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\ListFilesController;
 use App\Http\Controllers\Api\UploadFileController;
 use App\Http\Controllers\Api\DeleteFileController;
 use App\Http\Controllers\Api\GetFileController;
+use App\Http\Controllers\Api\StatusController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +19,8 @@ use App\Http\Controllers\Api\GetFileController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
+Route::match(['get', 'post'], '/', StatusController::class)->name('api.status');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/files', ListFilesController::class)->name('files.list');

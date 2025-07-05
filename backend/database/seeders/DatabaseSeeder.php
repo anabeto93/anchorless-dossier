@@ -15,9 +15,15 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
+        $user = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'password' => bcrypt('secret'),
         ]);
+
+        $token = $user->createToken('test-token')->plainTextToken;
+
+        $this->command->info('User credentials: email=test@example.com, password=secret');
+        $this->command->info('Test user created with token: ' . $token);
     }
 }

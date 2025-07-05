@@ -17,20 +17,25 @@ class DeleteFileControllerTest extends TestCase
 
     protected User $user;
     protected FileMetadata $file;
+    protected array $headers;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->user = User::factory()->create();
         $this->file = FileMetadata::factory()->create(['user_id' => $this->user->id]);
+        $token = $this->user->createToken('test-token')->plainTextToken;
+        $this->headers = [
+            'Authorization' => 'Bearer ' . $token,
+            'Accept' => 'application/json',
+        ];
     }
 
     #[Test]
     #[Group('delete_file')]
     public function test_user_can_delete_owned_file(): void
     {
-        $response = $this->actingAs($this->user)
-            ->deleteJson("/api/files/{$this->file->file_id}");
+        $response = $this->deleteJson("/api/files/{$this->file->file_id}", headers: $this->headers);
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -47,8 +52,7 @@ class DeleteFileControllerTest extends TestCase
     public function test_user_cannot_delete_non_existent_file(): void
     {
         $nonExistentId = 'non-existent-id';
-        $response = $this->actingAs($this->user)
-            ->deleteJson("/api/files/{$nonExistentId}");
+        $response = $this->deleteJson("/api/files/{$nonExistentId}", headers: $this->headers);
 
         $response->assertStatus(200);
     }
@@ -58,8 +62,12 @@ class DeleteFileControllerTest extends TestCase
     public function test_user_cannot_delete_file_they_do_not_own(): void
     {
         $otherUser = User::factory()->create();
-        $response = $this->actingAs($otherUser)
-            ->deleteJson("/api/files/{$this->file->file_id}");
+        $token = $otherUser->createToken('test-token')->plainTextToken;
+        $headers = [
+            'Authorization' => 'Bearer ' . $token,
+            'Accept' => 'application/json',
+        ];
+        $response = $this->deleteJson("/api/files/{$this->file->file_id}", headers: $headers);
 
         $response->assertStatus(200);
     }

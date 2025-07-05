@@ -24,7 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 $handler = new \App\Exceptions\ApiExceptionHandler();
                 return $handler->$method($e, $request);
             }
-            
+            dd(['exception' => $e]);
             return response()->json([
                 'success' => false,
                 'error_code' => 500,

@@ -16,6 +16,7 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Throwable;
 
 class ApiExceptionHandler
@@ -30,6 +31,7 @@ class ApiExceptionHandler
         MethodNotAllowedHttpException::class => 'handleMethodNotAllowedException',
         HttpException::class => 'handleHttpException',
         QueryException::class => 'handleQueryException',
+        RouteNotFoundException::class => 'handleNotFoundException',
     ];
 
     public function handle(Request $request, Throwable $e): JsonResponse
@@ -102,7 +104,7 @@ class ApiExceptionHandler
     }
 
     public function handleNotFoundException(
-        ModelNotFoundException|NotFoundHttpException $e,
+        ModelNotFoundException|NotFoundHttpException|RouteNotFoundException $e,
         Request $request
     ): JsonResponse {
         $this->logException($e, 'Resource not found');

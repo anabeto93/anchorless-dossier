@@ -22,9 +22,9 @@ use App\Http\Controllers\Api\StatusController;
 
 Route::match(['get', 'post'], '/', StatusController::class)->name('api.status');
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/files', ListFilesController::class)->name('files.list');
-    Route::post('/files', UploadFileController::class)->name('files.upload');
-    Route::delete('/files/{file}', DeleteFileController::class)->name('files.delete');
-    Route::get('/files/{file}', GetFileController::class)->name('files.get');
+Route::group(['prefix' => 'files', 'middleware' => 'auth:sanctum'], function () {
+    Route::get('/', ListFilesController::class)->name('files.list');
+    Route::post('/', UploadFileController::class)->name('files.upload');
+    Route::delete('/{file}', DeleteFileController::class)->name('files.delete');
+    Route::get('/{file}', GetFileController::class)->name('files.get');
 });

@@ -14,11 +14,17 @@ class ListFilesControllerTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+    protected array $headers;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->user = User::factory()->create();
+        $token = $this->user->createToken('test-token')->plainTextToken;
+        $this->headers = [
+            'Authorization' => 'Bearer ' . $token,
+            'Accept' => 'application/json',
+        ];
     }
 
     public function test_user_can_list_files_grouped_by_type(): void
@@ -29,8 +35,7 @@ class ListFilesControllerTest extends TestCase
             'mime_type' => 'image/jpeg',
         ]);
 
-        $response = $this->actingAs($this->user)
-            ->getJson('/api/files');
+        $response = $this->getJson('/api/files', headers: $this->headers);
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -55,8 +60,7 @@ class ListFilesControllerTest extends TestCase
 
     public function test_user_gets_empty_groups_when_no_files_exist(): void
     {
-        $response = $this->actingAs($this->user)
-            ->getJson('/api/files');
+        $response = $this->getJson('/api/files', headers: $this->headers);
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -78,6 +82,11 @@ class ListFilesControllerTest extends TestCase
     public function test_unauthenticated_user_cannot_list_files(): void
     {
         $response = $this->getJson('/api/files');
-        $response->assertStatus(401);
+        $response->assertUnauthorized()
+            ->assertJsonStructure([
+                'success',
+                'error_code',
+                'message',
+            ]);
     }
 }

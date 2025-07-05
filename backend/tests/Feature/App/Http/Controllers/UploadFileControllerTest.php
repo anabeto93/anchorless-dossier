@@ -18,19 +18,25 @@ class UploadFileControllerTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+    protected array $headers;
 
     protected function setUp(): void
     {
         parent::setUp();
         Storage::fake('local');
         $this->user = User::factory()->create();
+        $token = $this->user->createToken('test-token')->plainTextToken;
+        $this->headers = [
+            'Authorization' => 'Bearer ' . $token,
+            'Accept' => 'application/json',
+        ];
     }
 
     #[Test]
     #[Group('file_upload')]
     public function it_rejects_requests_without_any_files(): void
     {
-        $response = $this->actingAs($this->user)->postJson('/api/files', []);
+        $response = $this->postJson('/api/files', [], headers: $this->headers);
 
         $response->assertStatus(422)
             ->assertJsonStructure([
@@ -49,9 +55,9 @@ class UploadFileControllerTest extends TestCase
     {
         $file = UploadedFile::fake()->create('document.pdf', 5000); // 5MB, assuming max is 4MB
 
-        $response = $this->actingAs($this->user)->postJson('/api/files', [
+        $response = $this->postJson('/api/files', [
             'file' => [$file]
-        ]);
+        ], headers: $this->headers);
 
         $response->assertStatus(422)
             ->assertJsonStructure([
@@ -81,9 +87,9 @@ class UploadFileControllerTest extends TestCase
     {
         $file = UploadedFile::fake()->create($filename, 5000, $mimeType);
 
-        $response = $this->actingAs($this->user)->postJson('/api/files', [
+        $response = $this->postJson('/api/files', [
             'file' => $file
-        ]);
+        ], headers: $this->headers);
 
         $response->assertStatus(422)
             ->assertJsonStructure([
@@ -113,9 +119,9 @@ class UploadFileControllerTest extends TestCase
         Storage::fake('local');
         $file = UploadedFile::fake()->create($filename, 4 * 1024, $mimeType);
 
-        $response = $this->actingAs($this->user)->postJson('/api/files', [
+        $response = $this->postJson('/api/files', [
             'file' => $file
-        ]);
+        ], headers: $this->headers);
 
         $response->assertStatus(202) // always queued even though these are just small files
             ->assertJsonStructure([

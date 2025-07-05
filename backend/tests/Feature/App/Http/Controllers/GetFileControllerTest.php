@@ -17,11 +17,17 @@ class GetFileControllerTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+    protected array $headers;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->user = User::factory()->create();
+        $token = $this->user->createToken('test-token')->plainTextToken;
+        $this->headers = [
+            'Authorization' => 'Bearer ' . $token,
+            'Accept' => 'application/json',
+        ];
     }
 
     #[Test]
@@ -31,8 +37,7 @@ class GetFileControllerTest extends TestCase
         config(['file.storage.url' => 'files']);
         $file = FileMetadata::factory()->for($this->user)->create();
 
-        $response = $this->actingAs($this->user)
-            ->getJson('/api/files/' . $file->file_id);
+        $response = $this->getJson('/api/files/' . $file->file_id, headers: $this->headers);
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -62,8 +67,7 @@ class GetFileControllerTest extends TestCase
     #[Group('fetch_owned_file')]
     public function user_cannot_fetch_nonexistent_file(): void
     {
-        $response = $this->actingAs($this->user)
-            ->getJson('/api/files/invalid-id');
+        $response = $this->getJson('/api/files/invalid-id', headers: $this->headers);
 
         $response->assertNotFound()
             ->assertJsonStructure([
@@ -81,8 +85,7 @@ class GetFileControllerTest extends TestCase
         $owner = User::factory()->create();
         $file = FileMetadata::factory()->for($owner)->create();
 
-        $response = $this->actingAs($this->user)
-            ->getJson('/api/files/' . $file->file_id);
+        $response = $this->getJson('/api/files/' . $file->file_id, headers: $this->headers);
 
         $response->assertNotFound() // this is security by obscurity. Instead of forbidden
             ->assertJsonStructure([

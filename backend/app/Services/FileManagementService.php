@@ -93,7 +93,10 @@ class FileManagementService
         return ApiResponse::success(
             'File metadata retrieved successfully',
             200,
-            array_merge($fileMetadata->toArray(), ['path' => $url])
+            array_merge($fileMetadata->toArray(), [
+                'path' => $url,
+                'preview_url' => generateSignedFilePreviewUrl($fileMetadata->file_id)
+            ])
         );
     }
 
@@ -154,6 +157,7 @@ class FileManagementService
                     'size' => $file->size,
                     'created_at' => $file->created_at,
                     'path' => constructFileUrl($file),
+                    'preview_url' => generateSignedFilePreviewUrl($file->file_id)
                 ];
             }
 
@@ -174,5 +178,30 @@ class FileManagementService
         }
 
         return ApiResponse::success('Files listed successfully', 200, $data);
+    }
+
+    /**
+     * Get file metadata by file ID.
+     * 
+     * @param string $fileId
+     * @return ApiResponse
+     */
+    public function getFileById(string $fileId): ApiResponse
+    {
+        $fileMetadata = FileMetadata::where('file_id', $fileId)->first();
+
+        if (!$fileMetadata) {
+            return ApiResponse::error(
+                'File not found',
+                404,
+                ['error' => 'The requested file could not be found']
+            );
+        }
+
+        return ApiResponse::success(
+            'File retrieved successfully',
+            200,
+            ['file' => $fileMetadata]
+        );
     }
 }

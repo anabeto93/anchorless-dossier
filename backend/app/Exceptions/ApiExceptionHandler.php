@@ -17,6 +17,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
+use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Throwable;
 
 class ApiExceptionHandler
@@ -32,6 +33,7 @@ class ApiExceptionHandler
         HttpException::class => 'handleHttpException',
         QueryException::class => 'handleQueryException',
         RouteNotFoundException::class => 'handleNotFoundException',
+        InvalidSignatureException::class => 'handleInvalidSignatureException',
     ];
 
     public function handle(Request $request, Throwable $e): JsonResponse
@@ -150,6 +152,20 @@ class ApiExceptionHandler
             'error_code' => 500,
             'message' => 'A database error occurred. Please try again later.',
         ], 500);
+    }
+
+    public function handleInvalidSignatureException(
+        InvalidSignatureException $e,
+        Request $request
+    ): JsonResponse {
+        $this->logException($e, 'Invalid signature');
+        
+        // return a 404 instead. Not to give the hint that the signature is invalid
+        return response()->json([
+            'success' => false,
+            'error_code' => 404,
+            'message' => 'File not found',
+        ], 404);
     }
 
     private function getExceptionType(Throwable $e): string

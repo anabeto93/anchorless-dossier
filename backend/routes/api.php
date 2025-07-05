@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\UploadFileController;
 use App\Http\Controllers\Api\DeleteFileController;
 use App\Http\Controllers\Api\GetFileController;
 use App\Http\Controllers\Api\StatusController;
+use App\Http\Controllers\Api\PreviewFileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,3 +29,7 @@ Route::group(['prefix' => 'files', 'middleware' => 'auth:sanctum'], function () 
     Route::delete('/{file}', DeleteFileController::class)->name('files.delete');
     Route::get('/{file}', GetFileController::class)->name('files.get');
 });
+
+Route::get('files/{file}/preview', PreviewFileController::class)
+    ->name('files.preview')
+    ->middleware('signed');

@@ -60,3 +60,24 @@ if (!function_exists('constructFileUrl')) {
         return config('app.url') . str_replace('//', '/', '/' . $url);
     }
 }
+
+if (!function_exists('generateSignedFilePreviewUrl')) {
+    /**
+     * Generate a temporary signed URL for file preview.
+     *
+     * @param string $fileId
+     * @return string
+     */
+    function generateSignedFilePreviewUrl(string $fileId): string
+    {
+        $expiration = now()->addMinutes(
+            config('file.storage.preview_duration', 60)
+        );
+
+        return \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'files.preview',
+            $expiration,
+            ['file' => $fileId]
+        );
+    }
+}

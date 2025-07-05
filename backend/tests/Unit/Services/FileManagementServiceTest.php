@@ -15,6 +15,7 @@ use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Bus;
 use App\Jobs\DeleteFileJob;
+use Illuminate\Support\Facades\Storage;
 
 class FileManagementServiceTest extends TestCase
 {
@@ -165,13 +166,14 @@ class FileManagementServiceTest extends TestCase
         );
         $service->storeMetadata($dto);
 
-        $response = $service->getMetadata('doc_123');
+        $response = $service->getMetadata('doc_123', $this->user->id);
 
         $this->assertTrue($response->success);
         $this->assertEquals(200, $response->errorCode);
         $this->assertEquals('File metadata retrieved successfully', $response->message);
         $this->assertArrayHasKey('file_id', $response->data);
         $this->assertEquals('doc_123', $response->data['file_id']);
+        $this->assertEquals(config('app.url') . Storage::disk('local')->url('doc_123'), $response->data['path']);
     }
 
     #[Test]
@@ -181,10 +183,35 @@ class FileManagementServiceTest extends TestCase
     public function it_returns_error_when_retrieving_nonexistent_file(): void
     {
         $service = new FileManagementService();
-        $response = $service->getMetadata('non_existent_id');
+        $response = $service->getMetadata('non_existent_id', $this->user->id);
 
         $this->assertFalse($response->success);
         $this->assertEquals(404, $response->errorCode);
+        $this->assertEquals('File metadata not found', $response->message);
+        $this->assertArrayHasKey('error', $response->errors);
+        $this->assertEquals('The requested file metadata could not be found', $response->errors['error']);
+    }
+
+    #[Test]
+    #[Group('services')]
+    #[Group('file_management_service')]
+    #[Group('retrieve_metadata')]
+    public function it_prevents_access_to_file_not_belonging_to_user(): void
+    {
+        $otherUser = User::factory()->create();
+        $service = new FileManagementService();
+        $dto = new StoreFileMetadataDTO(
+            fileId: 'doc_123',
+            name: 'document.pdf',
+            size: 1024,
+            mimeType: 'application/pdf',
+            userId: $otherUser->id
+        );
+        $service->storeMetadata($dto);
+        $response = $service->getMetadata('doc_123', $this->user->id);
+
+        $this->assertFalse($response->success);
+        $this->assertEquals(404, $response->errorCode); // Do not use a 403 and hint at existence of the file.
         $this->assertEquals('File metadata not found', $response->message);
         $this->assertArrayHasKey('error', $response->errors);
         $this->assertEquals('The requested file metadata could not be found', $response->errors['error']);

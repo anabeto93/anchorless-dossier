@@ -32,4 +32,13 @@ class UploadFileFormRequest extends FormRequest
     {
         return StoreFileMetadataDTO::fromRequest($this);
     }
+
+    public function messages(): array
+    {
+        return [
+            'file.required' => 'Please select a file to upload.',
+            'file.max' => 'The file must not be greater than 4MB.',
+            'file.mimes' => 'The file must be a PDF, PNG, JPG, or JPEG.',
+        ];
+    }
 }

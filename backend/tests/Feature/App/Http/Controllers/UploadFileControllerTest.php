@@ -135,4 +135,26 @@ class UploadFileControllerTest extends TestCase
                 ],
             ]);
     }
+
+    #[Test]
+    #[Group('file_upload')]
+    #[DataProvider('validFileTypesProvider')]
+    public function it_rejects_large_valid_file_uploads(string $filename, string $mimeType): void
+    {
+        $file = UploadedFile::fake()->create($filename, 5 * 1024, $mimeType);
+
+        $response = $this->postJson('/api/files', [
+            'file' => $file
+        ], headers: $this->headers);
+
+        $response->assertStatus(422)
+            ->assertJsonStructure([
+                'success',
+                'error_code',
+                'message',
+                'errors' => [
+                    'file'
+                ]
+            ]);
+    }
 }

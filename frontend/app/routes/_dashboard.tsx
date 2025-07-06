@@ -1,4 +1,4 @@
-import { Outlet } from '@remix-run/react';
+import { Outlet, NavLink } from '@remix-run/react';
 import { UserCircleIcon, CogIcon, BellIcon, HomeIcon, FolderIcon } from '@heroicons/react/24/outline';
 
 export default function DashboardLayout() {
@@ -31,32 +31,32 @@ export default function DashboardLayout() {
         {/* Sidebar */}
         <aside className="hidden md:block w-64 bg-white border-r border-gray-200 pt-5">
           <nav className="px-2 space-y-1">
-            <a
-              href="/"
-              className="text-gray-600 hover:bg-gray-50 group flex items-center px-3 py-2 text-sm font-medium rounded-md"
+            <NavLink
+              to="/"
+              className={({ isActive }) => `group flex items-center px-3 py-2 text-sm font-medium rounded-md ${isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
             >
               <HomeIcon className="mr-3 h-5 w-5 text-gray-500" />
               <span className="truncate">Dashboard</span>
-            </a>
-            <a
-              href="/files"
-              className="bg-gray-100 text-gray-900 group flex items-center px-3 py-2 text-sm font-medium rounded-md"
+            </NavLink>
+            <NavLink
+              to="/files"
+              className={({ isActive }) => `group flex items-center px-3 py-2 text-sm font-medium rounded-md ${isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
             >
               <FolderIcon className="mr-3 h-5 w-5 text-gray-500" />
               <span className="truncate">Files</span>
-            </a>
-            <a
-              href="/analytics"
-              className="text-gray-600 hover:bg-gray-50 group flex items-center px-3 py-2 text-sm font-medium rounded-md"
+            </NavLink>
+            <NavLink
+              to="/analytics"
+              className={({ isActive }) => `group flex items-center px-3 py-2 text-sm font-medium rounded-md ${isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
             >
               <span className="truncate">Analytics (Coming Soon)</span>
-            </a>
-            <a
-              href="/settings"
-              className="text-gray-600 hover:bg-gray-50 group flex items-center px-3 py-2 text-sm font-medium rounded-md"
+            </NavLink>
+            <NavLink
+              to="/settings"
+              className={({ isActive }) => `group flex items-center px-3 py-2 text-sm font-medium rounded-md ${isActive ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50'}`}
             >
               <span className="truncate">Settings (Coming Soon)</span>
-            </a>
+            </NavLink>
           </nav>
         </aside>
 

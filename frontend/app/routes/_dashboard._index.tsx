@@ -1,10 +1,10 @@
-import { Link } from '@remix-run/react';
+import { Link, useLoaderData } from "@remix-run/react";
 import { ChartBarIcon, DocumentTextIcon, PhotoIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
-import { useLoaderData } from "@remix-run/react";
 import type { LoaderFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+// eslint-disable-next-line import/no-unresolved
 import api from "~/utils/api";
 import type { GroupedFiles, FileModel, ApiResponse } from "~/types/api";
+import { json } from "@remix-run/node";
 
 type DashboardStats = {
   total_files: number;
@@ -76,7 +76,7 @@ export default function DashboardHome() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
         <div className="mb-10">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="mt-2 text-gray-600">Welcome back! Here's what's happening with your files.</p>
+          <p className="mt-2 text-gray-600">Welcome back! Here&apos;s what&apos;s happening with your files.</p>
         </div>
         
         {/* Stats Section */}

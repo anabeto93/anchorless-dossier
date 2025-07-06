@@ -7,7 +7,7 @@ export interface FileModel {
   mime_type: string;
   created_at: string;
   updated_at: string;
-  preview_url: string;
+  previewUrl: string;
 }
 
 // Grouped files interface

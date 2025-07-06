@@ -173,9 +173,9 @@ export default function FilePreviewModal({ fileUrl, onClose }: FilePreviewModalP
         aria-label="Close modal"
       />
       
-      <div className="relative bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="flex justify-between items-center p-4 border-b">
-          <h3 className="text-lg font-medium">Preview</h3>
+      <div className="relative bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-xl">
+        <div className="flex justify-between items-center p-4 border-b bg-white dark:bg-gray-800">
+          <h3 className="text-lg font-semibold text-black dark:text-white">Preview</h3>
           <button 
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -201,7 +201,7 @@ export default function FilePreviewModal({ fileUrl, onClose }: FilePreviewModalP
           )}
           {!isLoading && hasError && (
             <div className="flex justify-center items-center h-64">
-              <p className="text-red-500">Failed to load preview.</p>
+              <p className="text-red-600 font-medium">Failed to load preview.</p>
               <a 
                 href={fileUrl} 
                 target="_blank" 

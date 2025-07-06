@@ -146,6 +146,6 @@ php artisan test
 
 ## 📝 License 🤔
 
-Hmm, let's see... This project is proprietary until July 15th, 2025, after which it will magically transform into open-sourced software under the [MIT license](https://opensource.org/licenses/MIT).
+Hmm, let's see... This project is proprietary until July 15th, 2025 or after Elliot and team have reviewed it, after which it will magically transform into open-sourced software under the [MIT license](https://opensource.org/licenses/MIT).
 
 Until then, it's mine, all mine! 😉

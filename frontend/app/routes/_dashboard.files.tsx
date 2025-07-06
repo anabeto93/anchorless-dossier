@@ -323,10 +323,11 @@ function FileItem({ file, onPreview }: FileItemProps) {
       </div>
 
       {showDeleteConfirm && createPortal(
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
-            <h3 className="text-lg font-medium mb-4">Delete File</h3>
-            <p className="mb-4">Are you sure you want to delete {file.name}? This action cannot be undone.</p>
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-75 z-40"></div>
+          <div className="relative z-50 bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full shadow-xl">
+            <h3 className="text-lg font-semibold mb-4 text-black dark:text-white">Delete Files</h3>
+            <p className="text-gray-800 dark:text-gray-200 mb-6 font-medium">Are you sure you want to delete the selected files? This action cannot be undone.</p>
             <div className="flex justify-end space-x-3">
               <button
                 type="button"

@@ -53,13 +53,14 @@ export default function FileUploadModal({ isOpen, onClose, onUpload, validationE
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Upload File</h2>
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-black bg-opacity-75 z-40"></div>
+      <div className="relative z-50 bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md shadow-xl">
+        <h2 className="text-xl font-bold mb-4 text-black dark:text-white">Upload File</h2>
         
         {validationErrors.length > 0 && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm font-medium text-red-800 mb-1">Please fix the following errors:</p>
+            <p className="text-sm font-semibold text-red-800 mb-1">Please fix the following errors:</p>
             <ul className="list-disc pl-5 text-sm text-red-700">
               {validationErrors.map((error, index) => (
                 <li key={index}>{error}</li>
@@ -84,7 +85,7 @@ export default function FileUploadModal({ isOpen, onClose, onUpload, validationE
 
         {selectedFile && !previewUrl && (
           <div className="mb-4">
-            <p className="text-gray-700">Selected file: {selectedFile.name}</p>
+            <p className="text-gray-900 dark:text-gray-100 font-medium">Selected file: {selectedFile.name}</p>
           </div>
         )}
 

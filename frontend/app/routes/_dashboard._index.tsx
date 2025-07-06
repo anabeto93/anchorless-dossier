@@ -60,7 +60,7 @@ export default function DashboardHome() {
             </div>
             <div className="ml-3">
               <p className="text-sm text-red-700">
-                <span className="font-medium">Error loading dashboard data</span> - {data.error}
+                <span className="font-medium">Error loading dashboard data</span> - {data.error as string}
               </p>
             </div>
           </div>

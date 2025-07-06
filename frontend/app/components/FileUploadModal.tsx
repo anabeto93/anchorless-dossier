@@ -1,12 +1,14 @@
 import { useState, useRef, ChangeEvent } from 'react';
+import toast from 'react-hot-toast';
 
 interface FileUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUpload: (file: File) => void;
+  validationErrors?: string[];
 }
 
-export default function FileUploadModal({ isOpen, onClose, onUpload }: FileUploadModalProps) {
+export default function FileUploadModal({ isOpen, onClose, onUpload, validationErrors = [] }: FileUploadModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -18,7 +20,7 @@ export default function FileUploadModal({ isOpen, onClose, onUpload }: FileUploa
     // Check file type
     const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
     if (!validTypes.includes(file.type)) {
-      alert('Please select a PDF, PNG, or JPG file');
+      toast.error('Please select a PDF, PNG, or JPG file');
       return;
     }
 
@@ -54,6 +56,17 @@ export default function FileUploadModal({ isOpen, onClose, onUpload }: FileUploa
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">Upload File</h2>
+        
+        {validationErrors.length > 0 && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-sm font-medium text-red-800 mb-1">Please fix the following errors:</p>
+            <ul className="list-disc pl-5 text-sm text-red-700">
+              {validationErrors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         
         <input
           type="file"

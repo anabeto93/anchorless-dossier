@@ -1,19 +1,131 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+// eslint-disable-next-line import/no-unresolved
+import api from '~/utils/api';
+import type { FileModel } from '~/types/api';
 
 interface FilePreviewModalProps {
-  fileUrl: string;
+  fileUrl: string; // This could be either a direct URL or a file_id
   onClose: () => void;
 }
 
 export default function FilePreviewModal({ fileUrl, onClose }: FilePreviewModalProps) {
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [fileData, setFileData] = useState<FileModel | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
+  const handleError = () => {
+    console.error('Failed to load preview for URL:', previewUrl);
+    setHasError(true);
+    setIsLoading(false);
+  };
+
+  // Determine if the fileUrl is a file_id or a direct URL
   useEffect(() => {
     setIsLoading(true);
+    setHasError(false);
+    
+    // Check if the URL is likely a file_id (not a full URL with http/https)
+    const isFileId = !fileUrl.startsWith('http');
+    
+    if (isFileId) {
+      // If it's a file_id, fetch the file metadata
+      const fetchFileData = async () => {
+        try {
+          const response = await api.get(`/api/files/${fileUrl}`);
+          if (response.data.success) {
+            setFileData(response.data.data);
+            // Use the preview_url from the response
+            setPreviewUrl(response.data.data.preview_url);
+          } else {
+            setHasError(true);
+          }
+        } catch (error) {
+          console.error('Error fetching file data:', error);
+          setHasError(true);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchFileData();
+    } else {
+      // If it's a direct URL, use it directly
+      setPreviewUrl(fileUrl);
+      setIsLoading(false);
+    }
   }, [fileUrl]);
+
+  // Render different preview components based on file type
+  const renderPreview = () => {
+    if (!fileData && !previewUrl) return null;
+    
+    // If we have file data, use the mime_type to determine how to render
+    if (fileData) {
+      const mimeType = fileData.mime_type;
+      
+      // Handle PDFs
+      if (mimeType === 'application/pdf') {
+        return (
+          <iframe 
+            src={previewUrl || ''} 
+            className="w-full h-[70vh]"
+            onLoad={() => setIsLoading(false)}
+            onError={handleError}
+            title="PDF preview"
+          />
+        );
+      }
+      
+      // Handle images
+      if (mimeType.startsWith('image/')) {
+        return (
+          <div className="flex justify-center items-center h-[70vh] overflow-auto">
+            <img 
+              src={previewUrl || ''} 
+              alt={fileData.name}
+              className="max-w-full max-h-full object-contain" 
+              onLoad={() => setIsLoading(false)}
+              onError={handleError}
+            />
+          </div>
+        );
+      }
+      
+      // For other file types, show a download link
+      return (
+        <div className="flex flex-col justify-center items-center h-[70vh]">
+          <div className="text-center p-6 bg-gray-50 rounded-lg">
+            <svg className="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p className="mt-4 text-sm font-medium text-gray-900">{fileData.name}</p>
+            <p className="mt-1 text-sm text-gray-500">{fileData.mime_type}</p>
+            <a 
+              href={fileData.path} 
+              download={fileData.name}
+              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              onClick={() => setIsLoading(false)}
+            >
+              Download File
+            </a>
+          </div>
+        </div>
+      );
+    }
+    
+    // If we only have a URL but no file data, use an iframe as fallback
+    return (
+      <iframe 
+        src={previewUrl || ''} 
+        className="w-full h-[70vh]"
+        onLoad={() => setIsLoading(false)}
+        onError={handleError}
+        title="File preview"
+      />
+    );
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -51,11 +163,7 @@ export default function FilePreviewModal({ fileUrl, onClose }: FilePreviewModalP
     };
   }, []);
 
-  const handleIframeError = (_error: Event) => {
-    console.error('Failed to load iframe for URL:', fileUrl);
-    setHasError(true);
-    setIsLoading(false);
-  };
+  // This function is now replaced by the handleError function above
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -104,18 +212,7 @@ export default function FilePreviewModal({ fileUrl, onClose }: FilePreviewModalP
               </a>
             </div>
           )}
-          {!isLoading && !hasError && (
-            <iframe 
-              src={fileUrl} 
-              className="w-full h-[70vh]"
-              onLoad={() => {
-                setIsLoading(false);
-                setError(false);
-              }}
-              onError={handleIframeError}
-              title="File preview"
-            />
-          )}
+          {!isLoading && !hasError && renderPreview()}
         </div>
       </div>
     </div>,

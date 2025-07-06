@@ -4,7 +4,10 @@ import { useLoaderData, useRevalidator } from "@remix-run/react";
 // eslint-disable-next-line import/no-unresolved
 import api from "~/utils/api";
 import type { ApiResponse, GroupedFiles, FileModel } from "~/types/api";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
+// eslint-disable-next-line import/no-unresolved
+import { extractValidationErrors, formatValidationErrorsList } from "~/utils/errorHandlers";
 // eslint-disable-next-line import/no-unresolved
 import FilePreviewModal from "~/components/FilePreviewModal";
 // eslint-disable-next-line import/no-unresolved
@@ -13,13 +16,18 @@ import { createPortal } from 'react-dom';
 
 interface FileItemProps {
   file: FileModel;
-  onPreview: (url: string) => void;
+  onPreview: (fileId: string) => void;
 }
 
 interface FileGroupProps {
   title: string;
   files: FileModel[];
-  setPreviewFile: (url: string) => void;
+  setPreviewFile: (fileId: string) => void;
+}
+
+interface SuccessUploading {
+  file_id: string;
+  url: string;
 }
 
 export const loader: LoaderFunction = async () => {
@@ -40,12 +48,11 @@ export const loader: LoaderFunction = async () => {
 
 export default function FilesPage() {
   const data = useLoaderData<typeof loader>();
-  const [previewFile, setPreviewFile] = useState<string | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-
-  useEffect(() => {
-    console.log('previewFile changed:', previewFile);
-  }, [previewFile]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [previewFileId, setPreviewFileId] = useState<string | null>(null);
+  const revalidator = useRevalidator();
 
   if (data.error) {
     return (
@@ -79,25 +86,93 @@ export default function FilesPage() {
 
   const { groupedFiles } = data as { groupedFiles: GroupedFiles };
 
+  const closePreview = () => setPreviewFileId(null);
 
-  const closePreview = () => {
-    setPreviewFile(null);
+  const handleFileUpload = async (file: File) => {
+    console.log("Uploading file", { file });
+    setIsUploading(true);
+    setValidationErrors([]);
+    
+    // Create a toast promise that will show loading, success, and error states
+    const uploadPromise = api.post<ApiResponse<SuccessUploading>>('/api/files', { file }, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Accept': 'application/json',
+      },
+    });
+    
+    toast.promise(
+      uploadPromise,
+      {
+        loading: 'Uploading file...',
+        success: 'File uploaded successfully!',
+        error: (err) => {
+          // Extract validation errors using our utility
+          const { toastMessage } = extractValidationErrors(err);
+          
+          // If it's a validation error, also set the errors for display in the modal
+          if (err.response?.status === 422) {
+            const errorsList = formatValidationErrorsList(err);
+            setValidationErrors(errorsList);
+          }
+          
+          return toastMessage;
+        },
+      }
+    );
+    
+    try {
+      /**
+       * {
+       *  "success": true,
+       *  "error_code": 202,
+       *  "message": "File upload queued for processing",
+       *  "data": {
+       *      "file_id": "file_17517937431184_36d3e69d5fed_screenshot-from-202",
+       *      "url": "http:\/\/localhost:2027\/api\/files\/file_17517937431184_36d3e69d5fed_screenshot-from-202"
+       *  }
+       * }
+       */
+      const response = await uploadPromise;
+      console.log("Response", { response: response.data });
+      if (response.data.success) {
+        setIsUploading(false);
+        setIsUploadModalOpen(false); // Close the modal on success
+        revalidator.revalidate();
+      }
+    } catch (error) {
+      console.error('Error uploading file', error);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-        {previewFile && (
-          <FilePreviewModal fileUrl={previewFile} onClose={closePreview} />
+        {previewFileId && (
+          <FilePreviewModal fileUrl={previewFileId} onClose={closePreview} />
         )}
         {isUploadModalOpen && (
           <FileUploadModal
             isOpen={isUploadModalOpen}
-            onClose={() => setIsUploadModalOpen(false)}
-            onUpload={(file) => {
-              console.log('Uploading file:', file.name);
-              // TODO: Implement upload logic
+            onClose={() => {
+              setIsUploadModalOpen(false);
+              setValidationErrors([]);
             }}
+            onUpload={handleFileUpload}
+            validationErrors={validationErrors}
           />
+        )}
+        {isUploading && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4">
+              <div className="relative w-full max-w-md">
+                <div className="bg-white rounded-lg p-6">
+                  <p className="text-center text-lg font-semibold text-gray-900">Uploading...</p>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Files</h1>
@@ -114,7 +189,7 @@ export default function FilesPage() {
           key={type}
           title={type}
           files={files}
-          setPreviewFile={setPreviewFile}
+          setPreviewFile={setPreviewFileId}
         />
       ))}
     </div>
@@ -123,7 +198,6 @@ export default function FilesPage() {
 
 function FileGroup({ title, files, setPreviewFile }: FileGroupProps) {
   const openModal = (fileUrl: string) => {
-    console.log('Opening modal for URL:', fileUrl);
     setPreviewFile(fileUrl);
   };
   return (
@@ -173,8 +247,20 @@ function FileItem({ file, onPreview }: FileItemProps) {
   const handleDelete = async () => {
     setShowDeleteConfirm(false);
     setIsDeleting(true);
+    
+    const deletePromise = api.delete(`/api/files/${file.id}`);
+    
+    toast.promise(
+      deletePromise,
+      {
+        loading: 'Deleting file...',
+        success: 'File deleted successfully!',
+        error: 'Failed to delete file. Please try again.',
+      }
+    );
+    
     try {
-      await api.delete(`/api/files/${file.id}`);
+      await deletePromise;
       revalidator.revalidate();
     } catch (error) {
       console.error('Error deleting file', error);
@@ -222,18 +308,14 @@ function FileItem({ file, onPreview }: FileItemProps) {
       <div className="bg-gray-50 px-4 py-3 flex justify-end">
         <button
           type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            console.log('Preview button clicked for:', file.name);
-            onPreview(file.previewUrl);
-          }}
+          onClick={() => onPreview(file.id.toString())}
           className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           Preview
         </button>
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); console.log('Delete button clicked for:'); return setShowDeleteConfirm(true) }}
+          onClick={() => setShowDeleteConfirm(true)}
           className="ml-2 inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
           Delete

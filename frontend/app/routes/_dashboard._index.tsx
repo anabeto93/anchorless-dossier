@@ -3,20 +3,24 @@ import { ChartBarIcon, DocumentTextIcon, PhotoIcon, ArrowUpTrayIcon } from '@her
 import type { LoaderFunction } from "@remix-run/node";
 // eslint-disable-next-line import/no-unresolved
 import api from "~/utils/api";
+import toast from "react-hot-toast";
+import { useEffect } from "react";
 import type { GroupedFiles, FileModel, ApiResponse } from "~/types/api";
 import { json } from "@remix-run/node";
 
-type DashboardStats = {
+// Define the data structure we'll use in our component
+type DashboardData = {
   total_files: number;
   total_size: number;
   recent_files: FileModel[];
+  error: string | null;
+  errorType?: string;
 };
 
 export const loader: LoaderFunction = async () => {
   try {
     const response = await api.get<ApiResponse<{ grouped_files: GroupedFiles }>>("/api/files");
     const groupedFiles = response.data.data.grouped_files;
-
     // Flatten all files
     const allFiles = Object.values(groupedFiles).flat();
 
@@ -24,10 +28,10 @@ export const loader: LoaderFunction = async () => {
     const total_files = allFiles.length;
 
     // Calculate total size
-    const total_size = allFiles.reduce((sum, file) => sum + file.size, 0);
+    const total_size = allFiles.reduce((sum, file: FileModel) => sum + file.size, 0);
 
     // Get recent files (sort by created_at descending and take 5)
-    const recent_files = [...allFiles]
+    const recent_files: FileModel[] = [...allFiles]
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, 5);
 
@@ -35,20 +39,57 @@ export const loader: LoaderFunction = async () => {
       total_files,
       total_size,
       recent_files,
-    });
-  } catch (error) {
+      error: null,
+    } as DashboardData);
+  } catch (error: unknown) {
+    const err = error as { response?: { status: number }, request?: unknown };
     console.error("Failed to load dashboard stats", error);
+    
+    let errorMessage = "Failed to load dashboard data. Please try again later.";
+    let errorType = "server_error";
+    
+    // Check for specific error types
+    if (err.response) {
+      if (err.response.status === 401) {
+        errorMessage = "Authentication failed. Please log in again.";
+        errorType = "auth_error";
+      } else if (err.response.status === 403) {
+        errorMessage = "You don't have permission to access this resource.";
+        errorType = "permission_error";
+      }
+    } else if (err.request) {
+      // The request was made but no response was received
+      errorMessage = "Server is not responding. Please try again later.";
+      errorType = "network_error";
+    }
+    
     return json({
-      error: "Failed to load dashboard data. Please try again later.",
+      error: errorMessage,
+      errorType,
+      total_files: 0,
+      total_size: 0,
+      recent_files: [],
     });
   }
 };
 
 export default function DashboardHome() {
-  const data = useLoaderData<DashboardStats>();
+  const data = useLoaderData<typeof loader>();
+  // Cast the data to our expected structure
+  const { total_files, total_size, recent_files, error, errorType } = data as DashboardData;
+  
+  // Show toast notification for errors
+  useEffect(() => {
+    if (error) {
+      toast.error(error, {
+        duration: 5000,
+        id: `dashboard-error-${errorType || 'unknown'}`,
+      });
+    }
+  }, [error, errorType]);
   
   // If there's an error, display it
-  if ('error' in data) {
+  if (error) {
     return (
       <div className="max-w-6xl mx-auto p-6">
         <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
@@ -60,7 +101,7 @@ export default function DashboardHome() {
             </div>
             <div className="ml-3">
               <p className="text-sm text-red-700">
-                <span className="font-medium">Error loading dashboard data</span> - {data.error as string}
+                <span className="font-medium">Error loading dashboard data</span> - {error}
               </p>
             </div>
           </div>
@@ -69,7 +110,7 @@ export default function DashboardHome() {
     );
   }
 
-  const { total_files, total_size, recent_files } = data;
+  // Data is already destructured above
 
   return (
     <div className="py-8">
@@ -109,7 +150,7 @@ export default function DashboardHome() {
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">Images</dt>
                     <dd className="flex items-baseline">
-                      <div className="text-2xl font-semibold text-gray-900">{recent_files.filter(file => file.name.endsWith('.jpg') || file.name.endsWith('.png')).length}</div>
+                      <div className="text-2xl font-semibold text-gray-900">{recent_files.filter((file: FileModel) => file.name.endsWith('.jpg') || file.name.endsWith('.png')).length}</div>
                     </dd>
                   </dl>
                 </div>
@@ -144,7 +185,11 @@ export default function DashboardHome() {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">Last Upload</dt>
-                    <dd className="text-sm font-medium text-gray-900">{formatDate(recent_files[0].created_at)}</dd>
+                    <dd className="text-sm font-medium text-gray-900">
+                      {recent_files && recent_files.length > 0 
+                        ? formatDate(recent_files[0].created_at)
+                        : 'No recent uploads'}
+                    </dd>
                   </dl>
                 </div>
               </div>

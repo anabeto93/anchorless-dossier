@@ -24,7 +24,7 @@ class UploadFileFormRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => ['required', File::types(['application/pdf', 'image/png', 'image/jpg'])->max(4 * 1024)]
+            'file' => ['required', File::types(['application/pdf', 'image/png', 'image/jpg', 'image/jpeg'])->max(4 * 1024)]
         ];
     }
 

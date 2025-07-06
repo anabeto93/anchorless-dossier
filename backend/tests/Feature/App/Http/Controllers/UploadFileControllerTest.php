@@ -106,8 +106,9 @@ class UploadFileControllerTest extends TestCase
     {
         return [
             'pdf' => ['document.pdf', 'application/pdf'],
-            'image' => ['image.jpg', 'image/jpg'],
+            'jpg image' => ['image.jpg', 'image/jpg'],
             'png' => ['document.png', 'image/png'],
+            'jpeg image' => ['image.jpeg', 'image/jpeg'], // NB: jpeg and jpg are the same, Windows is the reason for jpg
         ];
     }
 
